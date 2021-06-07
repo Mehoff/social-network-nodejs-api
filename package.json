@@ -1,0 +1,25 @@
+{
+  "name": "social-network-nodejs-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mehoff/social-network-nodejs-api.git"
+  },
+  "author": "Mehoff",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mehoff/social-network-nodejs-api/issues"
+  },
+  "homepage": "https://github.com/Mehoff/social-network-nodejs-api#readme",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {}
+}
