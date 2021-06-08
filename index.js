@@ -8,13 +8,16 @@ if(dotenv.error){
 const express = require('express');
 const app = express();
 
-let connection = mysql.createConnection({
+
+const connectionOptions = {
     host: process.env.DB_HOST,
-    user: process.env.DB_USER,
+    user: process.env.DB_USERNAME,
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT
-})
+}
+
+const connection = mysql.createConnection(connectionOptions);
 
 connection.connect((err) => {
     if(err){
