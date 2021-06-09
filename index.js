@@ -4,9 +4,11 @@ const mysql = require('mysql2/promise');
 if(dotenv.error){
     throw error;
 }
-
 const express = require('express');
+const cors = require('cors')
+
 const app = express();
+app.use(cors())
 
 
 const connectionOptions = {
@@ -54,11 +56,6 @@ async function getUser(id){
     return data[0];
 }
 
-// app.get('/', (req, res) => {
-//     console.log(req)
-//     res.status(200).send(req.body);
-// })
-
 app.get('/users', async (req, res) => {
 
     let response;
@@ -69,6 +66,7 @@ app.get('/users', async (req, res) => {
         if(response.error){
             res.send(response.error)
         }
+
         res.status(200).send(response)
     }
 
@@ -78,6 +76,7 @@ app.get('/users', async (req, res) => {
         if(response.error){
             res.send(users.error);
         }
+        
         res.status(200).send(response);
     }
     return res;
