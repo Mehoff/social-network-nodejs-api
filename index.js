@@ -8,7 +8,9 @@ const express = require('express');
 const cors = require('cors')
 
 const app = express();
-app.use(cors())
+app.use(cors());
+app.use(express.urlencoded());
+app.use(express.json());
 
 
 const connectionOptions = {
@@ -56,6 +58,49 @@ async function getUser(id){
     return data[0];
 }
 
+async function registerUser(user){
+    const connection = await mysql.createConnection(connectionOptions);
+
+    await connection.connect((err) => {
+        if(err){
+            return {"error" : "Error while connecting to database", "innerException" : err}
+        }
+    })
+
+    const response = await connection.execute(
+        `INSERT INTO \`Users\`(\`Id\`, \`Email\`, \`Password\`, \`Firstname\`, \`Secondname\`, \`GenderFK\`, \`ImageUri\`, \`Age\`, \`Phone\`) VALUES (NULL, '${user.email}', '${user.password}', '${user.firstname}', '${user.secondname}', ${user.gender}, NULL, ${user.age}, '${user.phone}')`
+    );
+
+    console.log(response);
+    
+    connection.end();
+    
+}
+
+//
+//  POST
+//
+
+app.post('/register', async(req, res) => {
+    console.log('<!> Register User:\n');
+    console.log(req.body);
+
+    await registerUser(req.body).then(() => res.status(200).send(req.body))
+
+   
+})
+
+app.post('/login', async(req, res) => {
+    console.log('<!> Login:\n');
+    console.log(req);
+
+    res.status(200).send(req.body)
+})
+
+//
+//  GET
+//
+
 app.get('/users', async (req, res) => {
 
     let response;
@@ -83,39 +128,10 @@ app.get('/users', async (req, res) => {
 
 })
 
+
+
+
 app.listen(process.env.PORT)
 console.log(`Listening on port ${process.env.PORT}`)
 
 
-
-
-
-
-
-// connection.connect( async (err) => {
-//     if(err){
-//         console.log(`<!> ERROR(connection.connect): \n${err}`)
-//         return;
-//     }
-    
-//     console.log('Подключение успешно!');
-
-//     await connection.query('INSERT INTO `Users` VALUES ()', (err, results, fields) => {
-//         if(err){
-//             console.log(`<!> ERROR(connection.query): \n${err}`);
-//             return;
-//         }
-//         console.log('Запрос выполнен без ошибок!')
-
-//         console.log(results);
-//         console.log(fields);
-//     }).then(() => {
-//         connection.end((err) => {
-//             if(err){
-//                 console.log(`<!> ERROR(connection.end): \n${err}`)
-//                 return;
-//             }
-//             console.log('Подключение разъединено!')
-//         })
-//     })
-// })
