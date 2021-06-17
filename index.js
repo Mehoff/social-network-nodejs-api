@@ -5,7 +5,8 @@ if(dotenv.error){
     throw error;
 }
 const express = require('express');
-const cors = require('cors')
+const cors = require('cors');
+const { response } = require('express');
 
 const app = express();
 app.use(cors());
@@ -22,8 +23,6 @@ const connectionOptions = {
 }
 
 async function getAllUsers(){
-    console.log('getAllUsers()')
-
     const connection = await mysql.createConnection(connectionOptions);
     
     await connection.connect((err) => {
@@ -41,7 +40,6 @@ async function getAllUsers(){
 }
 
 async function getUser(id){
-    console.log(`getUser(${id})`)
     const connection = await mysql.createConnection(connectionOptions);
     
     await connection.connect((err) => {
@@ -59,6 +57,7 @@ async function getUser(id){
 }
 
 async function registerUser(user){
+    console.log('registerUser()')
     const connection = await mysql.createConnection(connectionOptions);
 
     await connection.connect((err) => {
@@ -71,30 +70,65 @@ async function registerUser(user){
         `INSERT INTO \`Users\`(\`Id\`, \`Email\`, \`Password\`, \`Firstname\`, \`Secondname\`, \`GenderFK\`, \`ImageUri\`, \`Age\`, \`Phone\`) VALUES (NULL, '${user.email}', '${user.password}', '${user.firstname}', '${user.secondname}', ${user.gender}, NULL, ${user.age}, '${user.phone}')`
     );
 
-    console.log(response);
+    let insertId = response[0].insertId;
+    let res;
+
+    if(insertId){
+        let sql = `SELECT * FROM \`Users\` WHERE Id = ${insertId}`;
+        let data = await connection.execute(sql);
+
+        res = data[0];
+    }
+    else{
+        res = {error: 'Register error'}
+    }
     
     connection.end();
+    return res;
+}
+
+async function tryLogin(credentials){
+
+    let sql = `SELECT * FROM \`Users\` WHERE Email = '${credentials.email}' AND Password = '${credentials.password}'`
+    const connection = await mysql.createConnection(connectionOptions);
     
+    await connection.connect((err) => {
+        if(err){
+            return {"error" : "Error while connecting to database", "innerException" : err}
+        }
+    })
+
+    let data = await connection.execute(sql);
+
+    connection.end();
+
+    return data[0];
 }
 
 //
 //  POST
 //
 
-app.post('/register', async(req, res) => {
-    console.log('<!> Register User:\n');
-    console.log(req.body);
-
-    await registerUser(req.body).then(() => res.status(200).send(req.body))
-
-   
+app.post('/register', (req, res) => {
+    registerUser(req.body).then(() => res.status(200).send(req.body))
 })
 
-app.post('/login', async(req, res) => {
-    console.log('<!> Login:\n');
-    console.log(req);
+app.post('/login', async(req, res) => { 
+    if(!req.body.email || !req.body.password){
+        res.status(404).send({error: "No credentials data specified"})
+        return;
+    }
 
-    res.status(200).send(req.body)
+    let response = await tryLogin(req.body);
+
+    if(response.length == 0){
+        res.status(200).send({error: "Пользователь не найден"})
+    }
+
+    console.log(response[0])
+    
+    res.status(200).send(response[0])
+
 })
 
 //
@@ -127,8 +161,6 @@ app.get('/users', async (req, res) => {
     return res;
 
 })
-
-
 
 
 app.listen(process.env.PORT)
